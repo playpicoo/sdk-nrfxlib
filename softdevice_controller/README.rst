@@ -76,6 +76,11 @@ The libraries are available as soft-float, softfp-float, and hard-float builds f
 +--------------------------------+-----------------+--------------+-----------+
 | LE Flushable ACL Data          |                 |              | X         |
 +--------------------------------+-----------------+--------------+-----------+
+| Channel Classification         |                 |              | X         |
++--------------------------------+-----------------+--------------+-----------+
+| Decision Based Advertising     |                 |              | X         |
+| Filtering                      |                 |              |           |
++--------------------------------+-----------------+--------------+-----------+
 
 .. note::
    The following limitations apply to the listed features:
@@ -84,6 +89,8 @@ The libraries are available as soft-float, softfp-float, and hard-float builds f
    * For Connection CTE Response, angle of arrival (AoA) is supported, but angle of departure (AoD) is not.
    * For Periodic Advertising Sync Transfer - Receiver, only one sync transfer reception may be in progress at any one time per link.
    * For the LE Flushable ACL Data feature, the support is experimental.
+   * For the Channel Classification feature, the support is experimental.
+   * For the Decision Based Advertising Filtering feature, the support is experimental.
    * For the Isochronous Channels features, nRF52820 and nRF52833 are the nRF52 Series devices that support encrypting and decrypting the Isochronous Channels packets.
    * For the nRF54L Series devices, the SoftDevice Controller in non-secure mode is experimental.
    * Channel Sounding is not supported on the nRF52 and nRF53 Series devices.
@@ -92,8 +99,8 @@ The libraries are available as soft-float, softfp-float, and hard-float builds f
      The minimum supported connection intervals for each device family are as follows:
 
      * nRF52 Series: 750 μs
-     * nRF53 Series: 875 μs
-     * nRF54L Series: 750 μs
+     * nRF53 Series: 750 μs
+     * nRF54L Series: 625 μs
      * nRF54H Series: 750 μs
 
 .. _sdc_proprietary_feature_support:

@@ -49,7 +49,7 @@ enum sdc_hci_opcode_ip
 
 /** @brief LMP features.
  *
- * See Core_v5.4, Vol 2, Part C, Section 3.3
+ * See Core Spec Vol 2, Part C, Section 3.3
  */
 typedef struct __PACKED __ALIGN(1)
 {
@@ -519,8 +519,8 @@ typedef struct __PACKED __ALIGN(1)
     uint8_t rfu_49_1 : 1;
     uint8_t hci_le_cs_read_local_supported_capabilities_v2 : 1;
     uint8_t hci_le_cs_write_cached_remote_supported_capabilities_v2 : 1;
-    uint8_t rfu_49_4 : 1;
-    uint8_t rfu_49_5 : 1;
+    uint8_t hci_le_cs_set_security_requirements : 1;
+    uint8_t hci_le_cs_set_default_security_requirements : 1;
     uint8_t rfu_49_6 : 1;
     uint8_t rfu_49_7 : 1;
 } sdc_hci_ip_supported_commands_t;
