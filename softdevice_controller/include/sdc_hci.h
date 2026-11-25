@@ -14,7 +14,7 @@
  * The SoftDevice Controller HCI APIs are used to send HCI commands/data and receive
  * events/data to and from the SoftDevice Controller.
  * The HCI packet format is described in the Bluetooth Core Specification,
- * i.e. in Core Spec Vol 4, Part E.
+ * i.e. in Core v5. Vol 2, Part E.
  * All APIs in this header file are expected to be called from the
  * same execution priority as @ref mpsl_low_priority_process.
  * Not doing so will lead to undefined behavior.
@@ -81,6 +81,11 @@ extern "C" {
  * For more details, see the SoftDevice Controller documentation that describes how to provide data for isochronous channels.
  */
 #define HCI_ISO_TX_SDU_ARRIVAL_MARGIN_US 1000
+
+/** @brief Temporary define to return the command complete event immediately for the
+ * LE Set Periodic Advertising Response Data command.
+ */
+ #define SDC_HCI_PAWR_SYNC_RETURN_IMMEDIATELY 1
 
 typedef enum
 {

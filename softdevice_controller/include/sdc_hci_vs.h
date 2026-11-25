@@ -29,14 +29,6 @@ extern "C" {
 #include <stdint.h>
 #include <nrfx.h>
 
-/* The __deprecated macro is provided by Zephyr as a deprecation macro that is compatible with all
- * Zephyr toolchains. Define a fallback to keep the SDC Zephyr-independent, compatible with GCC-
- * and Clang-based compilers.
- */
-#ifndef __deprecated
-#define __deprecated __attribute__((deprecated))
-#endif /* __deprecated */
-
 /**
  * @defgroup HCI_TYPES Types
  * @{
@@ -61,8 +53,6 @@ enum sdc_hci_opcode_vs
     SDC_HCI_OPCODE_CMD_VS_ZEPHYR_WRITE_TX_POWER = 0xfc0e,
     /** @brief See @ref sdc_hci_cmd_vs_zephyr_read_tx_power(). */
     SDC_HCI_OPCODE_CMD_VS_ZEPHYR_READ_TX_POWER = 0xfc0f,
-    /** @brief See @ref sdc_hci_cmd_vs_dtm_command(). */
-    SDC_HCI_OPCODE_CMD_VS_DTM_COMMAND = 0xfc1f,
     /** @brief See @ref sdc_hci_cmd_vs_llpm_mode_set(). */
     SDC_HCI_OPCODE_CMD_VS_LLPM_MODE_SET = 0xfd01,
     /** @brief See @ref sdc_hci_cmd_vs_conn_update(). */
@@ -121,8 +111,6 @@ enum sdc_hci_opcode_vs
     SDC_HCI_OPCODE_CMD_VS_CS_PARAMS_SET = 0xfd22,
     /** @brief See @ref sdc_hci_cmd_vs_transmitter_carrier_test(). */
     SDC_HCI_OPCODE_CMD_VS_TRANSMITTER_CARRIER_TEST = 0xfd23,
-    /** @brief See @ref sdc_hci_cmd_vs_channel_reporting_enable(). */
-    SDC_HCI_OPCODE_CMD_VS_CHANNEL_REPORTING_ENABLE = 0xfd24,
 };
 
 /** @brief VS subevent Code values. */
@@ -136,10 +124,6 @@ enum sdc_hci_subevent_vs
     SDC_HCI_SUBEVENT_VS_CONN_ANCHOR_POINT_UPDATE_REPORT = 0x82,
     /** @brief See @ref sdc_hci_subevent_vs_periodic_adv_event_counter_report_t. */
     SDC_HCI_SUBEVENT_VS_PERIODIC_ADV_EVENT_COUNTER_REPORT = 0x84,
-    /** @brief See @ref sdc_hci_subevent_vs_channel_classification_report_t. */
-    SDC_HCI_SUBEVENT_VS_CHANNEL_CLASSIFICATION_REPORT = 0x87,
-    /** @brief See @ref sdc_hci_subevent_vs_channel_reporting_enable_complete_t. */
-    SDC_HCI_SUBEVENT_VS_CHANNEL_REPORTING_ENABLE_COMPLETE = 0x88,
 };
 
 /** @brief CS Parameter Set types. */
@@ -154,15 +138,6 @@ enum sdc_hci_vs_cs_param_type
     /** @brief CS voltage regulator mode set. */
     SDC_HCI_VS_CS_PARAM_TYPE_CS_VREG_MODE_SET = 0x03,
     SDC_HCI_VS_CS_PARAM_TYPE_MAX = 0x04,
-};
-
-/** @brief Command type for DTM meta commands. */
-enum sdc_hci_vs_dtm_command_opcode
-{
-    /** @brief DTM Test End command type. */
-    SDC_HCI_VS_DTM_COMMAND_OPCODE_TEST_END = 0x00,
-    /** @brief DTM Transmitter carrier frequency test command type. */
-    SDC_HCI_VS_DTM_COMMAND_OPCODE_TRANSMITTER_CARRIER_TEST = 0x01,
 };
 
 /** @brief Peripheral latency disable/enable modes. */
@@ -236,13 +211,6 @@ typedef struct __PACKED __ALIGN(1)
 {
     uint8_t cs_vreg_mode_enable_ldo;
 } sdc_hci_vs_cs_vreg_mode_params_t;
-
-/** @brief VS DTM HCI Command. */
-typedef struct __PACKED __ALIGN(1)
-{
-    /** @brief Command sub-opcode. @ref sdc_hci_vs_dtm_command_opcode. */
-    uint8_t sub_opcode;
-} sdc_hci_vs_dtm_command_header_t;
 
 /** @brief Zephyr Static Address type. */
 typedef struct __PACKED __ALIGN(1)
@@ -381,64 +349,6 @@ typedef struct __PACKED __ALIGN(1)
     uint16_t pa_event_counter;
 } sdc_hci_subevent_vs_periodic_adv_event_counter_report_t;
 
-/** @brief Channel Classification Report Event.
- *
- * This vendor-specific event is used to report channel classification information
- * received from the peer on the ACL connection identified by the Connection_Handle
- * parameter.
- *
- * The Controller will generate this event when the Central receives an
- * LL_CHANNEL_STATUS_IND PDU from the Peripheral during the Channel Classification
- * Reporting procedure. See Core Specification, Vol 6, Part B, Section 5.1.22.
- *
- * The Channel_Classification parameter contains the data channel classification
- * reported by the Peripheral. Its format is the same as the Channel_Classification
- * field in the LL_CHANNEL_STATUS_IND PDU. See Core Specification, Vol 6, Part B,
- * Section 2.4.2.39.
- *
- * This event is only generated on the Central. Channel classification reporting
- * has to be enabled using @ref sdc_hci_cmd_vs_channel_reporting_enable before this event
- * can be received.
- */
-typedef struct __PACKED __ALIGN(1)
-{
-    /** @brief Connection handle corresponding to the connection that received the channel
-     *         classification.
-     */
-    uint16_t conn_handle;
-    /** @brief Data channel classification reported by the Peripheral. This parameter contains 37
-     *         2-bit fields, little-endian packed. The nth such field (in the range 0 to 36)
-     *         contains the value for the link layer channel index n. Unknown = 0, Good = 1,
-     *         Reserved = 2, Bad = 3. The most significant bits are reserved and will be set to 0.
-     */
-    uint8_t channel_classification[10];
-} sdc_hci_subevent_vs_channel_classification_report_t;
-
-/** @brief Channel Reporting Enable Complete.
- *
- * This vendor-specific event is used to indicate that the Channel Classification Enable
- * Link Layer procedure has completed on the ACL connection identified by the
- * Connection_Handle parameter.
- *
- * The Controller shall generate this event when the Central has completed the Channel
- * Classification Enable procedure by sending an LL_CHANNEL_REPORTING_IND PDU to the
- * Peripheral and receiving the Link Layer acknowledgment. See Core Specification,
- * Vol 6, Part B, Section 5.1.21.
- *
- * The Status parameter indicates whether the procedure completed successfully. If the
- * Peripheral does not support the Channel Classification feature, Status shall indicate
- * Unsupported Remote Feature (0x1A).
- *
- * This event is only generated on the Central. It is generated after the
- * HCI_VS_Channel_Reporting_Enable command has been issued
- * using @ref sdc_hci_cmd_vs_channel_reporting_enable.
- */
-typedef struct __PACKED __ALIGN(1)
-{
-    uint8_t status;
-    uint16_t conn_handle;
-} sdc_hci_subevent_vs_channel_reporting_enable_complete_t;
-
 /** @} end of HCI_EVENTS */
 
 /**
@@ -560,26 +470,6 @@ typedef struct __PACKED __ALIGN(1)
     int8_t selected_tx_power;
 } sdc_hci_cmd_vs_zephyr_read_tx_power_return_t;
 
-/** @brief DTM Test End with Transmitted Packet Count command parameter(s). */
-typedef struct __PACKED __ALIGN(1)
-{
-    sdc_hci_vs_dtm_command_header_t header;
-} sdc_hci_cmd_vs_dtm_test_end_t;
-
-/** @brief DTM Test End with Transmitted Packet Count return parameter(s). */
-typedef struct __PACKED __ALIGN(1)
-{
-    uint16_t num_packets;
-} sdc_hci_cmd_vs_dtm_test_end_return_t;
-
-/** @brief DTM Transmitter carrier frequency test command parameter(s). */
-typedef struct __PACKED __ALIGN(1)
-{
-    sdc_hci_vs_dtm_command_header_t header;
-    uint8_t tx_channel;
-    int8_t tx_power_level;
-} sdc_hci_cmd_vs_dtm_transmitter_carrier_test_t;
-
 /** @brief Set Low Latency Packet Mode command parameter(s). */
 typedef struct __PACKED __ALIGN(1)
 {
@@ -597,7 +487,7 @@ typedef struct __PACKED __ALIGN(1)
      *         1,000 us steps are also accepted.
      */
     uint32_t conn_interval_us;
-    /** @brief Peripheral latency for the connection in number of connection events. */
+    /** @brief Slave latency for the connection in number of connection events. */
     uint16_t conn_latency;
     /** @brief Supervision timeout for the LE Link in 10 ms units. Range 100 ms to 32 s. */
     uint16_t supervision_timeout;
@@ -897,37 +787,6 @@ typedef struct __PACKED __ALIGN(1)
     int8_t tx_power_level;
 } sdc_hci_cmd_vs_transmitter_carrier_test_t;
 
-/** @brief Enable channel classification reporting on a connection command parameter(s). */
-typedef struct __PACKED __ALIGN(1)
-{
-    /** @brief Connection handle of the ACL connection. */
-    uint16_t conn_handle;
-    /** @brief 0x00: Disable channel classification reporting. 0x01: Enable channel classification
-     *         reporting. All other values are reserved for future use.
-     */
-    uint8_t enable;
-    /** @brief Minimum time between consecutive LL_CHANNEL_STATUS_IND PDUs, in units of 200 ms.
-     *         Valid range: 5 to 150 (1 second to 30 seconds).
-     */
-    uint8_t min_spacing;
-    /** @brief Maximum delay from a channel classification change until reporting, in units of 200
-     *         ms. Valid range: 5 to 150 (1 second to 30 seconds). Shall be greater than or equal to
-     *         Min_Spacing.
-     */
-    uint8_t max_delay;
-} sdc_hci_cmd_vs_channel_reporting_enable_t;
-
-/** @brief VS Hidden Vs Dtm Command command parameter(s). */
-typedef struct __PACKED __ALIGN(1)
-{
-    /** @brief Command parameters (union of all sub-command parameter structs). */
-    union __PACKED __ALIGN(1) {
-        sdc_hci_vs_dtm_command_header_t header;
-        sdc_hci_cmd_vs_dtm_test_end_t test_end;
-        sdc_hci_cmd_vs_dtm_transmitter_carrier_test_t transmitter_carrier_test;
-    } command_parameters;
-} sdc_hci_cmd_vs_dtm_command_t;
-
 /** @} end of HCI_COMMAND_PARAMETERS */
 
 /**
@@ -1151,19 +1010,6 @@ uint8_t sdc_hci_cmd_vs_zephyr_write_tx_power(const sdc_hci_cmd_vs_zephyr_write_t
 uint8_t sdc_hci_cmd_vs_zephyr_read_tx_power(const sdc_hci_cmd_vs_zephyr_read_tx_power_t * p_params,
                                             sdc_hci_cmd_vs_zephyr_read_tx_power_return_t * p_return);
 
-/** @brief Vs Dtm Command.
- *
- * @param[in]  p_params Input parameters (typed union of sub-commands).
- * @param[out] p_return Extra return parameters.
- * @param[out] p_return_length_out Length of the return parameters.
- *
- * @retval 0 if success.
- * @return Returns value between 0x01-0xFF in case of error.
- *         See Vol 2, Part D, Error for a list of error codes and descriptions.
- */
-uint8_t sdc_hci_cmd_vs_dtm_command(const sdc_hci_cmd_vs_dtm_command_t * p_params,
-                    void * p_return, uint8_t * p_return_length_out);
-
 /** @brief Set Low Latency Packet Mode.
  *
  * This command enables or disables Low Latency Packet Mode support.
@@ -1212,7 +1058,7 @@ uint8_t sdc_hci_cmd_vs_conn_update(const sdc_hci_cmd_vs_conn_update_t * p_params
  * controller
  * will extend the connection event as much as possible, if:
  * - Either of the peers has more data to send.
- *   See also: Core Spec Vol 6, Part B, Section 4.5.6
+ *   See also: Core v5.1, Vol 6, Part B, Section 4.5.6
  * - There are no conflicts with other concurrent links.
  *
  * A connection event can not be extended beyond the connection interval.
@@ -1330,7 +1176,7 @@ uint8_t sdc_hci_cmd_vs_periodic_adv_event_length_set(const sdc_hci_cmd_vs_period
  * regardless of the requested peripheral latency. This option consumes the most power.
  *
  * In wait_for_ack mode, the peripheral will wake up on every connection event if
- * it has not received an ACK from the central for at least peripheral latency events.
+ * it has not received an ACK from the master for at least peripheral latency events.
  * This configuration may increase the power consumption in environments with a lot of radio
  * activity.
  *
@@ -1353,7 +1199,7 @@ uint8_t sdc_hci_cmd_vs_peripheral_latency_mode_set(const sdc_hci_cmd_vs_peripher
  * This command requests adjustment of radio transmit power level for a connected peer device.
  *
  * When this command is issued, the controller initiates Power Control Request procedure
- * (Core Spec Vol 6, Part B, Section 5.1.17) to request the change from the peer. The
+ * (Core_v5.3, Vol 6, Part B, Section 5.1.17) to request the change from the peer. The
  * peer responds with the actual transmit power level change and the controller reports
  * the change to the host with an event.
  *
@@ -2002,9 +1848,6 @@ uint8_t sdc_hci_cmd_vs_cs_params_set(const sdc_hci_cmd_vs_cs_params_set_t * p_pa
 
 /** @brief Transmitter carrier frequency test.
  *
- * @deprecated Use @ref sdc_hci_cmd_vs_dtm_command() with sub-opcode
- *             @ref SDC_HCI_VS_DTM_COMMAND_OPCODE_TRANSMITTER_CARRIER_TEST instead.
- *
  * This command extends Bluetooth DTM commands.
  * This command is used to start a test where the IUT generates an unmodulated constant carrier
  * wave.
@@ -2032,65 +1875,7 @@ uint8_t sdc_hci_cmd_vs_cs_params_set(const sdc_hci_cmd_vs_cs_params_set_t * p_pa
  * @return Returns value between 0x01-0xFF in case of error.
  *         See Vol 2, Part D, Error for a list of error codes and descriptions.
  */
-__deprecated uint8_t sdc_hci_cmd_vs_transmitter_carrier_test(const sdc_hci_cmd_vs_transmitter_carrier_test_t * p_params);
-
-/** @brief Enable channel classification reporting on a connection.
- *
- * This vendor-specific command is used to enable or disable Channel Classification
- * reporting for the ACL connection identified by the Connection_Handle parameter.
- *
- * The command initiates the Channel Classification Enable Link Layer procedure on the
- * Central by sending an LL_CHANNEL_REPORTING_IND PDU to the Peripheral. See Core
- * Specification, Vol 6, Part B, Section 5.1.21.
- *
- * When the Enable parameter is set to 0x01, the Peripheral shall report channel
- * classification information by initiating the Channel Classification Reporting
- * procedure (see Core Specification, Vol 6, Part B, Section 5.1.22). When the
- * Enable parameter is set to 0x00, the Peripheral shall not send channel
- * classification information.
- *
- * When reporting is enabled, the Min_Spacing and Max_Delay parameters configure the
- * minimum time between consecutive LL_CHANNEL_STATUS_IND PDUs and the maximum delay
- * from a channel classification change until reporting, respectively. Both parameters
- * are expressed in units of 200 ms. Valid values are in the range 5 to 150
- * (1 second to 30 seconds). Max_Delay shall be greater than or equal to Min_Spacing.
- *
- * When reporting is enabled, the Controller
- * generates @ref SDC_HCI_SUBEVENT_VS_CHANNEL_CLASSIFICATION_REPORT
- * events when an LL_CHANNEL_STATUS_IND PDU is received from the Peripheral.
- *
- * Errors:
- *
- * See Section 4.5.2 for a list of error types and descriptions.
- *
- * <pre>
- * Type   Condition                                                        Error code
- * MC     Connection_Handle does not identify a current ACL.               Unknown Connection
- *                                                                         Identifier (0x02)
- * MC     The local Controller is not the Central of the connection.       Command Disallowed
- *                                                                         (0x0C)
- * MC     The remote device does not support the Channel Classification    Unsupported Remote
- *        feature.                                                         Feature (0x1A)
- * MC     A Channel Classification Enable procedure is still in progress   Controller Busy
- *        on this connection.                                              (0x3A)
- * MC     Enable is greater than 0x01, or Min_Spacing or Max_Delay is      Invalid HCI Command
- *        out of range, or Max_Delay is less than Min_Spacing.             Parameters (0x12)
- * </pre>
- *
- * Event(s) generated (unless masked away):
- *
- * When the Controller receives the HCI_VS_Channel_Reporting_Enable command,
- * the Controller shall send the HCI_Command_Status event to the Host.
- * When the HCI_VS_Channel_Reporting_Enable command has completed, an
- * HCI_VS_Channel_Reporting_Enable_Complete event shall be generated.
- *
- * @param[in]  p_params Input parameters.
- *
- * @retval 0 if success.
- * @return Returns value between 0x01-0xFF in case of error.
- *         See Vol 2, Part D, Error for a list of error codes and descriptions.
- */
-uint8_t sdc_hci_cmd_vs_channel_reporting_enable(const sdc_hci_cmd_vs_channel_reporting_enable_t * p_params);
+uint8_t sdc_hci_cmd_vs_transmitter_carrier_test(const sdc_hci_cmd_vs_transmitter_carrier_test_t * p_params);
 
 /** @} end of HCI_VS_API */
 
