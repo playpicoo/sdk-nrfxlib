@@ -1151,7 +1151,7 @@ uint8_t sdc_hci_cmd_vs_zephyr_write_tx_power(const sdc_hci_cmd_vs_zephyr_write_t
 uint8_t sdc_hci_cmd_vs_zephyr_read_tx_power(const sdc_hci_cmd_vs_zephyr_read_tx_power_t * p_params,
                                             sdc_hci_cmd_vs_zephyr_read_tx_power_return_t * p_return);
 
-/** @brief Vs Dtm Command. 
+/** @brief Vs Dtm Command.
  *
  * @param[in]  p_params Input parameters (typed union of sub-commands).
  * @param[out] p_return Extra return parameters.
